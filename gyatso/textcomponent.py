@@ -3,6 +3,8 @@ __all__ = ["TextComponent"]
 from pygame.locals import *
 import gyatso, math, pygame
 
+# How many lines to walk up/down using the mouse wheel
+WHEELINCREMENT = 3
 
 class TextComponent(gyatso.Component):
     def __init__(self, *args, color=(0,255,0), bgcolor=(0,0,0), textstyle=None, padding=10, linespacing=10, scrollbarwidth=10, **kwargs):
@@ -17,6 +19,7 @@ class TextComponent(gyatso.Component):
         self.__mode = "from_bottom"
         self.__flag_first = True
         self.__lines = []
+        self.__numcoords = None
 
     # ABSTRACT =========================================================================================================
 
@@ -39,6 +42,40 @@ class TextComponent(gyatso.Component):
                 self.__top = self.__top+1 if self.__top < self.__get_count()-1 else self.__top
                 self.__mode = "from_top"
                 ret = self.game.redraw()
+
+            elif key == K_PAGEUP:
+                count = self.__get_count()
+                if self.__numcoords is not None and self.__numcoords < count:
+                    self.__top = max(0, self.__top-(self.__numcoords-1))
+                    self.__mode = "from_top"
+                    ret = self.game.redraw()
+
+            elif key == K_PAGEDOWN:
+                count = self.__get_count()
+                if self.__numcoords is not None and self.__numcoords < count:
+                    self.__top = min(count-1, self.__top+(self.__numcoords-1))
+                    self.__mode = "from_top"
+                    ret = self.game.redraw()
+
+            elif key == K_HOME and pygame.key.get_mods() & pygame.KMOD_CTRL:
+                self.__top = 0
+                self.__mode = "from_top"
+                ret = self.game.redraw()
+
+            elif key == K_END and pygame.key.get_mods() & pygame.KMOD_CTRL:
+                self.__top = self.__get_count()-1
+                self.__mode = "from_top"
+                ret = self.game.redraw()
+
+        elif event.type == pygame.MOUSEBUTTONDOWN:
+            if event.button == 4:
+                self.__top = max(0, self.__top-WHEELINCREMENT)
+                self.__mode = "from_top"
+                ret = self.game.redraw()
+            elif event.button == 5:
+                self.__top = min(self.__get_count()-1, self.__top+WHEELINCREMENT)
+                self.__mode = "from_top"
+                ret = self.game.redraw()
         return ret
 
     def do_draw(self, surf):
@@ -53,7 +90,7 @@ class TextComponent(gyatso.Component):
 
         width, height = surf.get_size()
         ycoords = build_ycoords()
-        numcoords = len(ycoords)
+        self.__numcoords = numcoords = len(ycoords)
         lines = self.__lines = self._get_lines()
         surf.fill(self.bgcolor)
 
