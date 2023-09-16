@@ -1,6 +1,7 @@
 __all__ = ["Component"]
 
 import serverlib as sl
+import time
 
 class Component(sl.Intelligence):
     """
@@ -52,7 +53,9 @@ class Component(sl.Intelligence):
         return self.do_draw_mousepos()
 
     def draw(self, surf):
+        t = time.time()
         self.do_draw(surf)
+        self.logger.debug(f"{self.__class__.__name__} took {time.time()-t:.5f} seconds to draw")
         self.needs_draw = False
 
     def handle_event(self, event):

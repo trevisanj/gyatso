@@ -110,34 +110,39 @@ class TextComponent(gyatso.Component):
             return ycoords
 
         width, height = surf.get_size()
+        numcols = math.ceil(width-self.padding)/self.textstyle.fontwidth
         ycoords = build_ycoords()
         self.__numcoords = numcoords = len(ycoords)
         lines = self.__lines = self._get_lines()
         surf.fill(self.bgcolor)
 
         numlines = len(lines)
-        if numlines <= numcoords: self.__mode = "from_bottom"  # invalidates otherwise
+        if numlines <= numcoords:
+            self.__mode = "from_bottom"  # invalidates otherwise
         if self.__mode == "from_bottom":
             iline = numlines-1
         else:
             if self.__top+numcoords > numlines:
                 self.__top = numlines-numcoords
             iline = self.__top+numcoords-1
-        if iline == numlines-1: self.__mode = "from_bottom"
+        if iline == numlines-1:
+            self.__mode = "from_bottom"
 
         icoord = 0
         lastline = iline
         while icoord < numcoords and iline >= 0:
             line = lines[iline]
+            if len(line) > numcols:
+                line = line[:numcols]
             y = ycoords[icoord]
+            self.logger.debug(f"RRRRRRRRRRRRRRRENDERING {line}")
             ot, _ = self.textstyle.font.render(line, self.textstyle.color)
             surf.blit(ot, (self.padding, y))
             self.__top = firstline = iline
             icoord += 1
             iline -= 1
 
-        # "Scrollbar" (non-responsive though, but TODO one could store the coordinates from this drawing to make it responsive)
-
+        # "Scrollbar"
         x0 = width-self.scrollbarwidth
         # x1 = width-1
         y0 = 0
@@ -152,6 +157,7 @@ class TextComponent(gyatso.Component):
             ybox0 = a*firstline+b
             ybox1 = a*lastline1+b
             pygame.draw.rect(surf, self.color, (x0, ybox0, self.scrollbarwidth, ybox1-ybox0+1), width=0)
+
 
     # PRIVATE ==========================================================================================================
 
