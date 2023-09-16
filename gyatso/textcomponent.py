@@ -29,6 +29,13 @@ class TextComponent(gyatso.Component):
     # OVERRIDE =========================================================================================================
 
     def do_handle_event(self, event):
+        def respond_to_mouse_scrollbar(h, y):
+            numlines = len(self.__lines)
+            n = self.__get_num_visible_lines()
+            self.__top = max(0, int(y / h * numlines - n / 2))
+            self.__mode = "from_top"
+            return self.game.redraw()
+
         ret = False
         if event.type == KEYDOWN:
             key = event.key
@@ -67,22 +74,36 @@ class TextComponent(gyatso.Component):
                 self.__mode = "from_top"
                 ret = self.game.redraw()
 
+        elif event.type == pygame.MOUSEMOTION:
+            if pygame.mouse.get_pressed()[0]:
+                x, y = event.pos
+                w, h = self.game.screen.get_size()
+                if x > w - self.scrollbarwidth:
+                    ret = respond_to_mouse_scrollbar(h, y)
+
         elif event.type == pygame.MOUSEBUTTONDOWN:
-            if event.button == 4:
+            if event.button == 1:
+                x, y = event.pos
+                w, h = self.game.screen.get_size()
+                if x > w-self.scrollbarwidth:
+                    ret = respond_to_mouse_scrollbar(h, y)
+
+            if event.button == 4:  # wheel up
                 self.__top = max(0, self.__top-WHEELINCREMENT)
                 self.__mode = "from_top"
                 ret = self.game.redraw()
-            elif event.button == 5:
+            elif event.button == 5: # wheel down
                 self.__top = min(self.__get_count()-1, self.__top+WHEELINCREMENT)
                 self.__mode = "from_top"
                 ret = self.game.redraw()
         return ret
 
+
     def do_draw(self, surf):
         def build_ycoords():
             # n*fontheight+(n-1)*linespacing+padding >= height
+            n = self.__get_num_visible_lines()
             fh = self.textstyle.fontheight
-            n = math.ceil((height+self.linespacing-self.padding)/(fh+self.linespacing))
             y1 = height-1-self.padding-fh
             step = fh+self.linespacing
             ycoords = [y1-i*step for i in range(n)]
@@ -138,3 +159,9 @@ class TextComponent(gyatso.Component):
     def __get_count(self):
         # This is a default, slow, implementation
         return len(self._get_lines())
+
+    def __get_num_visible_lines(self):
+        height = self.game.screen.get_size()[1]
+        fh = self.textstyle.fontheight
+        n = math.ceil((height + self.linespacing - self.padding) / (fh + self.linespacing))
+        return n
