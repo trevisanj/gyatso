@@ -37,6 +37,11 @@ class TextStyle:
         self.__init_font()
         return self.__fontheight
 
+    @property
+    def fontwidth(self):
+        self.__init_font()
+        return self.__fontwidth
+
     def __init__(self, font=None, color=(0, 255, 0)):
         self.font = font
         self.__fontwidth = None
@@ -46,5 +51,5 @@ class TextStyle:
     def __init_font(self):
         if self.__font is None:
             self.__font = gyatso.get_defaultfont()
-            o = self.__font.render("M", (0, 0, 0))[1]
+            o = self.__font.render("▒", (0, 0, 0))[1]
             self.__fontwidth, self.__fontheight = o.width, o.height

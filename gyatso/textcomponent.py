@@ -110,7 +110,7 @@ class TextComponent(gyatso.Component):
             return ycoords
 
         width, height = surf.get_size()
-        numcols = math.ceil(width-self.padding)/self.textstyle.fontwidth
+        numcols = math.ceil((width-self.padding)/self.textstyle.fontwidth)-5
         ycoords = build_ycoords()
         self.__numcoords = numcoords = len(ycoords)
         lines = self.__lines = self._get_lines()
